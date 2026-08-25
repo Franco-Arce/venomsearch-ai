@@ -36,6 +36,7 @@ dependencies = [
     "streamlit>=1.62.0",
     "plotly>=6.9.0",
     "umap-learn>=0.5.12",
+    "matplotlib>=3.11.1",
 ]
 
 [project.optional-dependencies]

@@ -4305,6 +4305,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "lancedb" },
+    { name = "matplotlib" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "plotly" },
@@ -4343,6 +4344,7 @@ notebook = [
 requires-dist = [
     { name = "jupyterlab", marker = "extra == 'notebook'", specifier = ">=4.0" },
     { name = "lancedb", specifier = ">=0.6" },
+    { name = "matplotlib", specifier = ">=3.11.1" },
     { name = "matplotlib", marker = "extra == 'notebook'", specifier = ">=3.8" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
     { name = "nbformat", marker = "extra == 'notebook'", specifier = ">=5.9" },
