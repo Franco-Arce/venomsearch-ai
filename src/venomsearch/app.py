@@ -125,15 +125,15 @@ if search_clicked and query_seq:
         st.success(f"¡Encontrados {len(results)} resultados similares en milisegundos!")
 
         # Formatear resultados a DF
-        res_df = pd.DataFrame([r.model_dump() for r in results])
-        # Formateamos la distancia a score de similitud (1 - dist)
-        res_df["similitud"] = 1.0 - res_df["distance"]
+        res_df = pd.DataFrame(results)
+        # La distancia de LanceDB ya fue convertida a cosine_similarity por VenomVectorStore
+        res_df["similitud"] = res_df["cosine_similarity"]
 
         # -----------------------------------------------------------------------------
         # Resultados - Tabla
         # -----------------------------------------------------------------------------
         st.subheader("🏆 Mejores Coincidencias (Top Hits)")
-        display_cols = ["accession", "name", "family", "organism", "similitud"]
+        display_cols = ["accession", "protein_name", "toxin_family", "organism", "similitud"]
 
         # Mostrar tabla interactiva
         st.dataframe(
@@ -163,12 +163,11 @@ if search_clicked and query_seq:
                 # Transformamos nuestra query
                 query_pca = pca.transform(emb.reshape(1, -1))
 
-                # Armamos un DF para graficar
                 plot_df = pd.DataFrame({
                     "x": bg_pca[:, 0],
                     "y": bg_pca[:, 1],
-                    "familia": bg_df["family"],
-                    "nombre": bg_df["name"],
+                    "familia": bg_df["toxin_family"],
+                    "nombre": bg_df["protein_name"],
                     "tipo": "Dataset (Toxinas)"
                 })
 
@@ -204,7 +203,7 @@ if search_clicked and query_seq:
         st.subheader("🔬 Visualización Estructural (AlphaFold 3D)")
 
         best_match = res_df.iloc[0]
-        st.markdown(f"Mostrando predicción de estructura para el mejor resultado: **{best_match['name']}** (`{best_match['accession']}`)")
+        st.markdown(f"Mostrando predicción de estructura para el mejor resultado: **{best_match['protein_name']}** (`{best_match['accession']}`)")
 
         # PDBe Molstar Viewer embebido
         molstar_html = f"""
