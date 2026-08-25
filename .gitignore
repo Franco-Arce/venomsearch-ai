@@ -35,9 +35,9 @@ ENV/
 # Data (large files — not committed)
 # ──────────────────────────────────────────────
 data/raw/
-data/processed/
+# data/processed/ is now tracked for Colab EDA (small files)
 # data/lancedb/ (Un-ignored para que funcione en Streamlit Cloud)
-*.parquet
+# *.parquet is tracked for small files
 # *.lance
 
 # ──────────────────────────────────────────────
