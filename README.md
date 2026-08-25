@@ -2,188 +2,116 @@
 
 # 🐍 VenomSearch-AI
 
-**ETL Pipeline & Vector Search for Neurotoxins using ESM-2 Protein Language Model**
+**Búsqueda Vectorial Inteligente de Neurotoxinas con ESM-2 (Meta)**
 
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://venomsearch-ai.streamlit.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)]()
-[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-*Bioinformatics & AI Data Engineering portfolio project demonstrating biological API consumption, protein sequence processing, pLLM inference, and vector indexing for in silico screening.*
+*Un pipeline de Bioinformática & Ingeniería de Datos de IA. Ingiere datos de la API de UniProt, procesa secuencias no estructuradas, genera embeddings con modelos de lenguaje de proteínas (ESM-2) y provee un dashboard interactivo de Streamlit con visualización 3D y búsqueda de similitud estructural.*
+
+### 🌐 [**¡Probá la Aplicación Web en Vivo!**](https://venomsearch-ai.streamlit.app/)
 
 </div>
 
 ---
 
-## 🏗️ Architecture
+## 🧬 ¿Cómo funciona?
 
-```
-UniProt API (Tox-Prot)
-       │ (REST / Streaming JSON)
-       ▼
-┌─────────────────────────────┐
-│  1. Ingestion & Validation  │──▶ Pydantic v2 + Polars LazyFrames
-│     (ETL Pipeline)          │
-└─────────────┬───────────────┘
-              │
-              ▼
-┌─────────────────────────────┐
-│  2. ESM-2 Inference Engine  │──▶ Meta ESM-2 (esm2_t6_8M_UR50D)
-│     (Protein Embeddings)    │    Mean pooling → dim 320
-└─────────────┬───────────────┘
-              │
-              ▼
-┌─────────────────────────────┐
-│  3. Storage & Indexing      │──▶ LanceDB (Vector) + Parquet (Cold)
-│     (Dual Storage)          │
-└─────────────┬───────────────┘
-              │
-              ▼
-┌─────────────────────────────┐
-│  4. Query CLI               │──▶ Cosine Similarity Search + Ranking
-│     (Typer + Rich)          │
-└─────────────────────────────┘
-```
+A diferencia de algoritmos clásicos como BLAST que buscan similitud lineal de secuencias, **VenomSearch-AI "entiende" la biología**. 
 
-## 🚀 Quick Start
+Utiliza **ESM-2**, un LLM entrenado por Meta sobre millones de secuencias de proteínas, para generar vectores matemáticos (embeddings) que capturan características complejas como:
+- Posibles dominios funcionales
+- Puentes disulfuro y estructuras secundarias
+- Motivos conservados de toxicidad
 
-### Prerequisites
+El pipeline toma las secuencias curadas (Tox-Prot), calcula sus embeddings en el espacio latente y los indexa en **LanceDB** para realizar búsquedas por **similitud de cosenos en milisegundos**.
 
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) package manager
+---
 
-### Installation
+## 🔬 Ejemplos de Secuencias para Probar
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/venomsearch-ai.git
-cd venomsearch-ai
+Ingresá cualquiera de estas secuencias en el [Dashboard Web](https://venomsearch-ai.streamlit.app/) para observar las toxinas más similares en la base de datos y visualizar su estructura 3D:
 
-# Install dependencies with uv
-uv sync
+1. **Melitina (Veneno de Abeja)** - *Cardiotoxina / Antimicrobiano*
+   ```text
+   GIGAVLKVLTTGLPALISWIKRKRQQ
+   ```
 
-# Install with notebook extras (for UMAP visualization)
-uv sync --extra notebook
+2. **Cobratoxina (Veneno de Naja kaouthia)** - *Neurotoxina (Bloquea receptores nicotínicos)*
+   ```text
+   IRCFITPDITSKDCPNGHVCYTKTWCDAFCSIRGKRVDLGCAATCPTVKTGVDIQCCSTDNCNPFPTWK
+   ```
+
+3. **Conotoxina (Caracol Conus)** - *Ion channel toxin (Bloquea canales de calcio)*
+   ```text
+   CKSPGSSCSPTSYNCRQSNCYITPTK
+   ```
+
+---
+
+## 📊 Arquitectura del Pipeline
+
+El proyecto está diseñado como un ETL escalable:
+
+```mermaid
+graph TD
+    A[UniProt API Tox-Prot] -->|REST / Streaming| B(1. ETL Ingestion)
+    B -->|Polars / Pydantic| C(2. Motor de Inferencia ESM-2)
+    C -->|Embeddings Dim 320| D[(3. Vector DB: LanceDB)]
+    D -->|Similitud de Coseno| E(4. Typer CLI & Streamlit App)
 ```
 
-### Usage
+## 💻 Tech Stack
 
-```bash
-# 1. Ingest toxin data from UniProt/Tox-Prot
-venomsearch ingest
-
-# 2. Generate ESM-2 embeddings
-venomsearch embed
-
-# 3. Build vector index
-venomsearch index
-
-# 4. Search for similar toxins
-venomsearch search "MKTLLLTLVVVTIVCLDLGYTRDCIRFHDKCSIHRECMQCCRSIGYVHVFRKRN"
-
-# 5. Search from a FASTA file
-venomsearch search --file query.fasta
-
-# 6. Dataset statistics
-venomsearch info
-
-# 7. Run CPU vs GPU benchmark
-venomsearch benchmark
-```
-
-### Docker
-
-```bash
-docker build -t venomsearch-ai .
-docker run venomsearch-ai search "MKTLLLTLVVVTIVCLDLGYT..."
-```
-
-## 📊 Example Output
-
-```
-╭─────────────────────────────────────────────────────────────╮
-│  🔬 VenomSearch-AI — Top 5 Similar Toxins                  │
-├──────┬─────────────┬──────────────┬────────────┬────────────┤
-│ Rank │ Accession   │ Protein Name │ Organism   │ Cos. Sim.  │
-├──────┼─────────────┼──────────────┼────────────┼────────────┤
-│  1   │ P01437      │ 3FTx-Naja    │ N. naja    │ 0.9842     │
-│  2   │ P60301      │ α-conotoxin  │ C. geogr.  │ 0.9713     │
-│  3   │ P0C1Z0      │ δ-SVNTX      │ B. jara.   │ 0.9651     │
-│  4   │ Q9TWG0      │ κ-SNTX       │ S. invicta │ 0.9488     │
-│  5   │ P0DL46      │ μ-conotoxin  │ C. magus   │ 0.9301     │
-╰──────┴─────────────┴──────────────┴────────────┴────────────╯
-```
-
-## 🧬 Technical Stack
-
-| Layer | Technology | Purpose |
+| Componente | Tecnología | Propósito |
 |:------|:-----------|:--------|
-| **Validation** | Pydantic v2 | Typed API response parsing |
-| **DataFrame** | Polars | Lazy ETL with Rust backend |
-| **pLLM** | ESM-2 (8M params) | Protein sequence embeddings |
-| **Vector DB** | LanceDB | Embedded cosine similarity search |
-| **Cold Storage** | Apache Parquet | Columnar analytics storage |
-| **CLI** | Typer + Rich | Interactive command-line interface |
-| **Visualization** | UMAP + Plotly | Latent space exploration |
+| **App / Visualización** | Streamlit + Plotly + Molstar | UI interactiva, gráficos PCA/UMAP, render 3D |
+| **Inferencia pLLM** | ESM-2 (8M params) | Embeddings biológicos |
+| **Vector Database** | LanceDB | Indexación y búsqueda de similitud ultrarrápida |
+| **Data Processing** | Polars | ETL de alto rendimiento y bajo uso de RAM |
+| **Validación** | Pydantic v2 | Tipado estricto para respuestas de APIs |
+| **CLI** | Typer + Rich | Interfaz de terminal elegante para correr el pipeline |
 
-## ⚡ Benchmark
+---
 
-| Metric | CPU | GPU |
-|:-------|:----|:----|
-| 100 sequences (avg 80 aa) | — | — |
-| 1000 sequences (avg 80 aa) | — | — |
-| Peak Memory | — | — |
-| Index Creation (LanceDB) | — | — |
-| Search Latency (top-5) | — | — |
+## 🚀 Correr de Manera Local
 
-*Run `venomsearch benchmark` to fill in your hardware-specific numbers.*
+Si querés descargar la base de datos y correr el modelo de IA en tu propia computadora:
 
-## 📁 Project Structure
+### 1. Requisitos
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) (Package manager rápido)
 
-```
-venomsearch-ai/
-├── data/
-│   ├── raw/                    # UniProt JSONL snapshots
-│   └── processed/              # Parquet with embeddings & metadata
-├── src/venomsearch/
-│   ├── etl/
-│   │   ├── uniprot_client.py   # Paginated UniProt API client
-│   │   ├── cleaner.py          # FASTA sequence validation
-│   │   └── pipeline.py         # ETL orchestrator
-│   ├── embeddings/
-│   │   ├── esm_encoder.py      # ESM-2 inference with PyTorch
-│   │   └── batch_sampler.py    # Dynamic padding & batching
-│   ├── search/
-│   │   ├── vector_store.py     # LanceDB interface
-│   │   └── similarity.py       # Ranking & search engine
-│   ├── models.py               # Pydantic schemas
-│   └── cli.py                  # Typer CLI application
-├── notebooks/
-│   └── 01_eda_and_umap.ipynb   # UMAP latent space visualization
-├── tests/                      # Pytest test suite
-├── Dockerfile                  # Reproducible container
-├── pyproject.toml              # Project configuration
-└── README.md
+### 2. Instalación
+```bash
+git clone https://github.com/Franco-Arce/venomsearch-ai.git
+cd venomsearch-ai
+uv sync
 ```
 
-## 🔬 Data Source
+### 3. Pipeline ETL y CLI
+El CLI de `venomsearch` te permite bajar los datos y armar tu propia Vector DB:
 
-This project uses data from **UniProt Tox-Prot**, the toxin annotation program of the Universal Protein Resource. Specifically:
+```bash
+# Bajar proteínas, generar vectores e indexarlos en LanceDB
+uv run python -m venomsearch.cli ingest
+uv run python -m venomsearch.cli embed
+uv run python -m venomsearch.cli index
 
-- **KW-0800** — Toxin (general category)
-- **KW-0528** — Neurotoxin
-- **KW-0123** — Cardiotoxin
-- **KW-0008** — Acetylcholine receptor inhibiting toxin
+# Búsqueda desde consola
+uv run python -m venomsearch.cli search "GIGAVLKVLTTGLPALISWIKRKRQQ"
+```
 
-Only **reviewed (Swiss-Prot)** entries are used to ensure high-quality curated annotations.
+### 4. Lanzar la App Web
+```bash
+uv run streamlit run src/venomsearch/app.py
+```
 
-## 📜 License
+---
 
-MIT License — see [LICENSE](LICENSE) for details.
+## 📚 Origen de los Datos
+Todos los datos provienen de **UniProt Tox-Prot** (The Universal Protein Resource). Se extraen programáticamente mediante su API REST (utilizando paginación cursor-based). Solamente se admiten entradas **revisadas (Swiss-Prot)** para garantizar la mayor precisión biológica.
 
-## 📚 References
-
-- Rives, A. et al. (2021). *Biological structure and function emerge from scaling unsupervised learning to 250 million protein sequences.* PNAS.
-- Lin, Z. et al. (2023). *Evolutionary-scale prediction of atomic-level protein structure with a language model.* Science.
-- [UniProt Tox-Prot](https://www.uniprot.org/help/Toxin_annotation_program)
-- [LanceDB Documentation](https://lancedb.github.io/lancedb/)
+## 📄 Licencia
+Este proyecto fue creado por Franco Arce como demostración de portfolio. Licencia MIT.
