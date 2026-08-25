@@ -36,9 +36,9 @@ ENV/
 # ──────────────────────────────────────────────
 data/raw/
 data/processed/
-data/lancedb/
+# data/lancedb/ (Un-ignored para que funcione en Streamlit Cloud)
 *.parquet
-*.lance
+# *.lance
 
 # ──────────────────────────────────────────────
 # PyTorch / ML
